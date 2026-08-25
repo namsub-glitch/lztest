@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMarket GSP Sandbox 주문 테스트 자동화</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333; }
+        h1 { color: #2c3e50; }
+        .container { display: flex; gap: 20px; }
+        .panel { flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #2ecc71; color: white; padding: 12px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; }
+        button:hover { background-color: #27ae60; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .log-box { background-color: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 4px; font-family: monospace; height: 550px; overflow-y: auto; white-space: pre-wrap; }
+        .status { font-weight: bold; margin-top: 10px; }
+        .success { color: #27ae60; }
+        .error { color: #c0392b; }
+        .notice { background-color: #e7f3fe; border-left: 6px #2196F3 solid; padding: 10px; margin-bottom: 15px; font-size: 14px; line-height: 1.5; color: #0c5460; }
+    </style>
+</head>
+<body>
+
+    <h1>🛒 GMarket GSP Sandbox 주문 파이프라인 테스트</h1>
+    
+    <div class="notice">
+        <strong>🌐 웹 호스팅 상태:</strong> API Gateway 주소로 direct 통신하도록 설정되어 있습니다.
+    </div>
+
+    <hr>
+
+    <div class="container">
+        <!-- 입력 폼 패널 -->
+        <div class="panel">
+            <h3>1. Render Order 기본 정보 입력</h3>
+            
+            <div class="form-group">
+                <label>siteCode / subSiteCode (배송 국가 자동 지정)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="siteCode" value="LAZADA">
+                    <input type="text" id="subSiteCode" value="SG">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>itemNo</label>
+                <input type="text" id="itemNo" value="8003559881">
+            </div>
+            <div class="form-group">
+                <label>skuCode</label>
+                <input type="text" id="skuCode" value="10801753148">
+            </div>
+            <div class="form-group">
+                <label>quantity</label>
+                <input type="number" id="quantity" value="1">
+            </div>
+            <div class="form-group">
+                <label>requestKey (Render용 기본값)</label>
+                <input type="text" id="requestKey" value="4534543543545">
+            </div>
+
+            <button id="runBtn" onclick="runOrderPipeline()">주문 파이프라인 일괄 실행</button>
+            <div id="statusMessage" class="status"></div>
+        </div>
+
+        <!-- 실시간 로그 출력 패널 -->
+        <div class="panel">
+            <h3>🖥️ 실행 로그 (Console)</h3>
+            <div id="logBox" class="log-box">대기 중...</div>
+        </div>
+    </div>
+
+    <script>
+        const logBox = document.getElementById('logBox');
+        const statusMessage = document.getElementById('statusMessage');
+        const runBtn = document.getElementById('runBtn');
+
+        const FIXED_BUYER_NO = "160886898";
+        const FIXED_EXCHANGE = "USD";
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            let color = '#ecf0f1';
+            if (type === 'success') color = '#2ecc71';
+            if (type === 'error') color = '#e74c3c';
+            if (type === 'req') color = '#f1c40f';
+
+            logBox.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n\n`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearLog() {
+            logBox.innerHTML = '';
+        }
+
+        function generateUniqueKey() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}${month}${day}-${hours}${minutes}${seconds}`;
+        }
+
+        // 프록시 없이 API Gateway 직접 호출
+        async function callApi(url, headers, body) {
+            log(`🚀 POST 요청 발송 -> ${url}`, 'req');
+            log(`🔑 요청 헤더:\n${JSON.stringify(headers, null, 2)}`);
+            log(`📦 요청 바디:\n${JSON.stringify(body, null, 2)}`);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            const errorText = await response.text();
+            let json = null;
+            try {
+                json = JSON.parse(errorText);
+            } catch (e) {
+                json = null;
+            }
+
+            if (!response.ok || (json && json.resultCode !== "0" && json.resultMsg !== "succeed")) {
+                const errMsg = json ? JSON.stringify(json) : errorText;
+                throw new Error(`[Status ${response.status}] ${errMsg}`);
+            }
+
+            log(`📥 응답 수신:\n${JSON.stringify(json, null, 2)}`, 'success');
+            return json;
+        }
+
+        async function executeSinglePipelineAttempt(attemptIndex) {
+            log(`========================================`);
+            log(`🔄 주문 시도 #${attemptIndex} 시작`);
+            log(`========================================`);
+
+            const commonHeaders = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImxhenNnMTMifQ.eyJpc3MiOiJ3d3cuZ21hcmtldC5jby5rciIsInN1YiI6InNlbGwiLCJhdWQiOiJzYS5lc21wbHVzLmNvbSIsInNzaSI6Ikc6bGF6c2cxMyJ9.PENxObHkAn8LxkaYkrxRMMM-pbeXf7cAWF8ddsbsM4w'
+            };
+
+            const selectedSubSiteCode = document.getElementById('subSiteCode').value;
+            const currentRenderKey = attemptIndex === 1 
+                ? document.getElementById('requestKey').value 
+                : generateUniqueKey();
+
+            // STEP 1: Render Order
+            log('=== STEP 1: Render Order 시작 ===');
+            const renderUrl = 'https://api-gateway-sandbox.esmplus.com/lazada/checkout/v1/render-order';
+            const renderBody = {
+                exchange: FIXED_EXCHANGE,
+                itemNo: document.getElementById('itemNo').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                requestKey: currentRenderKey,
+                siteCode: document.getElementById('siteCode').value,
+                skuCode: document.getElementById('skuCode').value,
+                subSiteCode: selectedSubSiteCode
+            };
+
+            const renderRes = await callApi(renderUrl, commonHeaders, renderBody);
+
+            const checkoutUnitId = renderRes.data.checkoutUnitId;
+            const totalAmount = Number(renderRes.data.amount);
+            const originalRenderExchange = renderRes.data.exchange;
+
+            const rawExchangeAmount = parseFloat(originalRenderExchange.exchangeAmount || 0);
+            const rawShippingExchange = parseFloat(originalRenderExchange.shippingFeeExchangeAmount || 0);
+            const calculatedExchangeAmount = (rawExchangeAmount + rawShippingExchange).toFixed(2);
+            const formattedExchangeRate = parseFloat(originalRenderExchange.exchangeRate || 0).toFixed(2);
+
+            // STEP 2: Place Order (검증된 데이터 타입 적용)
+            log('=== STEP 2: Place Order 시작 ===');
+            const placeUrl = 'https://api-gateway-sandbox.esmplus.com/lazada/order/v1/place-order';
+            const currentPlaceRequestKey = generateUniqueKey();
+
+            const placeBody = {
+                buyerNo: Number(FIXED_BUYER_NO),
+                checkoutUnitId: Number(checkoutUnitId),
+                requestKey: currentPlaceRequestKey,
+                siteCode: document.getElementById('siteCode').value,
+                subSiteCode: selectedSubSiteCode,
+                shippingCountryCode: selectedSubSiteCode,
+                amount: totalAmount,
+                exchange: {
+                    exchangeNo: String(originalRenderExchange.exchangeNo),
+                    exchange: originalRenderExchange.exchange,
+                    exchangeAmount: String(calculatedExchangeAmount),
+                    exchangeRate: String(formattedExchangeRate)
+                }
+            };
+
+            const placeRes = await callApi(placeUrl, commonHeaders, placeBody);
+
+            const packNo = placeRes.data.packNo;
+            const contrNo = placeRes.data.contrNo;
+
+            // STEP 3: Payments
+            log('=== STEP 3: Payments 시작 ===');
+            const paymentUrl = 'https://api-gateway-sandbox.esmplus.com/lazada/payment/v1/payments';
+
+            const paymentExchangeBody = {
+                exchangeNo: String(originalRenderExchange.exchangeNo),
+                exchange: String(originalRenderExchange.exchange),
+                exchangeAmount: String(calculatedExchangeAmount),
+                exchangeRate: String(formattedExchangeRate)
+            };
+
+            const paymentBody = {
+                buyerNo: String(FIXED_BUYER_NO),
+                requestKey: currentPlaceRequestKey,
+                packNo: packNo,
+                contrNo: contrNo,
+                amount: String(totalAmount),
+                exchange: paymentExchangeBody
+            };
+
+            await callApi(paymentUrl, commonHeaders, paymentBody);
+        }
+
+        async function runOrderPipeline() {
+            clearLog();
+            runBtn.disabled = true;
+            statusMessage.className = 'status';
+            statusMessage.innerText = '⏳ Sandbox 주문 생성 진행 중...';
+
+            try {
+                await executeSinglePipelineAttempt(1);
+                log('🎉 Sandbox 모든 주문 프로세스가 정상 처리되었습니다!', 'success');
+                statusMessage.className = 'status success';
+                statusMessage.innerText = '✅ Sandbox 전 과정 성공 완료!';
+            } catch (error) {
+                log(`❌ 프로세스 중단: ${error.message}`, 'error');
+                statusMessage.className = 'status error';
+                statusMessage.innerText = '❌ 에러 발생 (로그 확인 필요)';
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
