@@ -112,8 +112,9 @@
             log(`🔑 요청 헤더:\n${JSON.stringify(headers, null, 2)}`);
             log(`📦 요청 바디:\n${JSON.stringify(body, null, 2)}`);
 
-            // GitHub Pages HTTPS 환경 전용 우회 터널링
-            const targetUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+            // Authorization 헤더 전달이 가능한 corsproxy.io 사용
+            const proxyUrl = 'https://corsproxy.io/?';
+            const targetUrl = proxyUrl + encodeURIComponent(url);
 
             const response = await fetch(targetUrl, {
                 method: 'POST',
