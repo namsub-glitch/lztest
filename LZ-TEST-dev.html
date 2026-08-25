@@ -27,7 +27,7 @@
     <h1>🛒 GMarket GSP Sandbox 주문 파이프라인 테스트</h1>
     
     <div class="notice">
-        <strong>🌐 GitHub Pages 지원 모드:</strong> 안정적인 프록시 엔진이 적용되어 있습니다.
+        <strong>🌐 Direct 통신 모드:</strong> API Gateway로 직접 요청합니다. (CORS 확장 프로그램 활성화 필요)
     </div>
 
     <hr>
@@ -106,16 +106,13 @@
             return `${year}${month}${day}-${hours}${minutes}${seconds}`;
         }
 
-        // 안정적인 thingproxy 우회 엔진 적용
+        // Direct 호출 전용 함수
         async function callApi(url, headers, body) {
             log(`🚀 POST 요청 발송 -> ${url}`, 'req');
             log(`🔑 요청 헤더:\n${JSON.stringify(headers, null, 2)}`);
             log(`📦 요청 바디:\n${JSON.stringify(body, null, 2)}`);
 
-            const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
-            const targetUrl = proxyUrl + url;
-
-            const response = await fetch(targetUrl, {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify(body)
@@ -178,7 +175,7 @@
             const calculatedExchangeAmount = (rawExchangeAmount + rawShippingExchange).toFixed(2);
             const formattedExchangeRate = parseFloat(originalRenderExchange.exchangeRate || 0).toFixed(2);
 
-            // STEP 2: Place Order (요청해주신 타입 맞춤)
+            // STEP 2: Place Order
             log('=== STEP 2: Place Order 시작 ===');
             const placeUrl = 'https://api-gateway-sandbox.esmplus.com/lazada/order/v1/place-order';
             const currentPlaceRequestKey = generateUniqueKey();
