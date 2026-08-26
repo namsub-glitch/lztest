@@ -847,56 +847,23 @@
                 generateUniqueKey();
 
 
-            const placeBody = {
+const placeExchange = {
+    exchangeNo: String(originalRenderExchange.exchangeNo),
+    exchange: String(originalRenderExchange.exchange),
+    exchangeAmount: String(calculatedExchangeAmount),
+    exchangeRate: String(formattedExchangeRate)
+};
 
-                buyerNo:
-                    Number(FIXED_BUYER_NO),
-
-                checkoutUnitId:
-                    Number(checkoutUnitId),
-
-                requestKey:
-                    currentPlaceRequestKey,
-
-                siteCode:
-                    document
-                        .getElementById('siteCode')
-                        .value
-                        .trim(),
-
-                subSiteCode:
-                    selectedSubSiteCode,
-
-                shippingCountryCode:
-                    selectedSubSiteCode,
-
-                amount:
-                    totalAmount,
-
-                exchange: {
-
-                    exchangeNo:
-                        String(
-                            originalRenderExchange
-                                .exchangeNo
-                        ),
-
-                    exchange:
-                        originalRenderExchange.exchange,
-
-                    exchangeAmount:
-                        String(
-                            calculatedExchangeAmount
-                        ),
-
-                    exchangeRate:
-                        String(
-                            formattedExchangeRate
-                        )
-
-                }
-
-            };
+const placeBody = {
+    buyerNo: Number(FIXED_BUYER_NO),
+    checkoutUnitId: Number(checkoutUnitId),
+    requestKey: currentPlaceRequestKey,
+    siteCode: document.getElementById('siteCode').value.trim(),
+    subSiteCode: selectedSubSiteCode,
+    shippingCountryCode: selectedSubSiteCode,
+    amount: totalAmount,
+    exchange: placeExchange
+};
 
 
             const placeRes =
@@ -956,75 +923,74 @@
             }
 
 
-            /*
-             * =================================================
-             * STEP 3
-             * Payments
-             * =================================================
-             */
+/*
+ * =================================================
+ * STEP 3
+ * Payments
+ * =================================================
+ */
 
-            log(
-                '=== STEP 3: Payments 시작 ==='
-            );
-
-
-            const paymentExchangeBody = {
-
-                exchangeNo:
-                    String(
-                        originalRenderExchange
-                            .exchangeNo
-                    ),
-
-                exchange:
-                    String(
-                        originalRenderExchange
-                            .exchange
-                    ),
-
-                exchangeAmount:
-                    String(
-                        calculatedExchangeAmount
-                    ),
-
-                exchangeRate:
-                    String(
-                        formattedExchangeRate
-                    )
-
-            };
+log(
+    '=== STEP 3: Payments 시작 ==='
+);
 
 
-            const paymentBody = {
+/*
+ * Place Order에 실제 전달했던 exchange를
+ * Payment에도 동일하게 사용
+ */
 
-                buyerNo:
-                    String(FIXED_BUYER_NO),
-
-                requestKey:
-                    currentPlaceRequestKey,
-
-                packNo:
-                    packNo,
-
-                contrNo:
-                    contrNo,
-
-                amount:
-                    String(totalAmount),
-
-                exchange:
-                    paymentExchangeBody
-
-            };
+const paymentExchangeBody = {
+    ...placeExchange
+};
 
 
-            await callApi(
-                API_PATHS.payment,
-                paymentBody
-            );
+/*
+ * 디버깅 로그
+ */
 
-        }
+log(
+    `💱 Place Order에 전달한 exchange:\n` +
+    `${JSON.stringify(placeExchange, null, 2)}`
+);
 
+log(
+    `💱 Payment에 전달할 exchange:\n` +
+    `${JSON.stringify(paymentExchangeBody, null, 2)}`
+);
+
+
+/*
+ * Payment 요청
+ */
+
+const paymentBody = {
+
+    buyerNo:
+        String(FIXED_BUYER_NO),
+
+    requestKey:
+        currentPlaceRequestKey,
+
+    packNo:
+        packNo,
+
+    contrNo:
+        contrNo,
+
+    amount:
+        String(totalAmount),
+
+    exchange:
+        paymentExchangeBody
+
+};
+
+
+await callApi(
+    API_PATHS.payment,
+    paymentBody
+);
 
         /*
          * =====================================================
