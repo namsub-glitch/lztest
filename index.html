@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>GMarket GSP Sandbox 주문 파이프라인 테스트</title>
+    <title>GMarket GSP Sandbox 주문 파이프라인 테스트 v08261122</title>
 
     <style>
         body {
@@ -28,7 +28,7 @@
             background: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .form-group {
@@ -41,8 +41,7 @@
             font-weight: bold;
         }
 
-        input,
-        select {
+        input {
             width: 100%;
             padding: 8px;
             box-sizing: border-box;
@@ -139,9 +138,9 @@
 
 <div class="container">
 
-    <!-- ============================= -->
+    <!-- ============================== -->
     <!-- 입력 영역 -->
-    <!-- ============================= -->
+    <!-- ============================== -->
 
     <div class="panel">
 
@@ -150,8 +149,7 @@
         <div class="form-group">
 
             <label>
-                siteCode / subSiteCode
-                (배송 국가 자동 지정)
+                siteCode / subSiteCode (배송 국가 자동 지정)
             </label>
 
             <div style="display:flex; gap:10px;">
@@ -259,9 +257,9 @@
     </div>
 
 
-    <!-- ============================= -->
-    <!-- 로그 영역 -->
-    <!-- ============================= -->
+    <!-- ============================== -->
+    <!-- 실행 로그 -->
+    <!-- ============================== -->
 
     <div class="panel">
 
@@ -281,7 +279,7 @@
 
 /*
  * ============================================================
- * 1. Cloudflare Worker 설정
+ * 1. Cloudflare Worker
  * ============================================================
  */
 
@@ -349,8 +347,7 @@ function log(message, type = 'info') {
     const timestamp =
         new Date().toLocaleTimeString();
 
-    let color =
-        '#ecf0f1';
+    let color = '#ecf0f1';
 
     if (type === 'success') {
         color = '#2ecc71';
@@ -413,8 +410,7 @@ function clearLog() {
 
 function generateUniqueKey() {
 
-    const now =
-        new Date();
+    const now = new Date();
 
     const year =
         now.getFullYear();
@@ -448,7 +444,7 @@ function generateUniqueKey() {
 
 /*
  * ============================================================
- * 9. Worker URL 생성
+ * 9. Worker URL
  * ============================================================
  */
 
@@ -474,14 +470,6 @@ function getProxyUrl(path) {
 /*
  * ============================================================
  * 10. API 호출
- *
- * Browser
- *    ↓
- * Cloudflare Worker
- *    ↓
- * ESMPlus API
- *
- * Bearer Token은 Worker에서 처리합니다.
  * ============================================================
  */
 
@@ -534,17 +522,9 @@ async function callApi(path, body) {
     }
 
 
-    /*
-     * 응답 Text
-     */
-
     const responseText =
         await response.text();
 
-
-    /*
-     * JSON 변환
-     */
 
     let json = null;
 
@@ -559,13 +539,8 @@ async function callApi(path, body) {
     } catch (e) {
 
         json = null;
-
     }
 
-
-    /*
-     * HTTP 오류
-     */
 
     if (!response.ok) {
 
@@ -584,10 +559,6 @@ async function callApi(path, body) {
     }
 
 
-    /*
-     * API 응답 로그
-     */
-
     log(
         `📥 응답 수신:\n${JSON.stringify(json, null, 2)}`,
         'success'
@@ -595,10 +566,7 @@ async function callApi(path, body) {
 
 
     /*
-     * ESMPlus resultCode 검사
-     *
-     * 기존 정상 동작하던 Render / Place 흐름을
-     * 그대로 유지합니다.
+     * ESMPlus API resultCode 확인
      */
 
     if (
@@ -692,31 +660,43 @@ async function executeSinglePipelineAttempt(
 
 
     /*
-     * 기본 검증
+     * 입력값 검증
      */
 
     if (!siteCode) {
-        throw new Error('siteCode를 입력해주세요.');
+        throw new Error(
+            'siteCode를 입력해주세요.'
+        );
     }
 
     if (!subSiteCode) {
-        throw new Error('subSiteCode를 입력해주세요.');
+        throw new Error(
+            'subSiteCode를 입력해주세요.'
+        );
     }
 
     if (!itemNo) {
-        throw new Error('itemNo를 입력해주세요.');
+        throw new Error(
+            'itemNo를 입력해주세요.'
+        );
     }
 
     if (!skuCode) {
-        throw new Error('skuCode를 입력해주세요.');
+        throw new Error(
+            'skuCode를 입력해주세요.'
+        );
     }
 
     if (!quantity || quantity < 1) {
-        throw new Error('quantity는 1 이상이어야 합니다.');
+        throw new Error(
+            'quantity는 1 이상이어야 합니다.'
+        );
     }
 
     if (!requestKey) {
-        throw new Error('requestKey를 입력해주세요.');
+        throw new Error(
+            'requestKey를 입력해주세요.'
+        );
     }
 
 
@@ -754,6 +734,7 @@ async function executeSinglePipelineAttempt(
 
         subSiteCode:
             subSiteCode
+
     };
 
 
@@ -765,7 +746,7 @@ async function executeSinglePipelineAttempt(
 
 
     /*
-     * Render 응답 확인
+     * Render 응답 검증
      */
 
     if (
@@ -779,10 +760,6 @@ async function executeSinglePipelineAttempt(
         );
     }
 
-
-    /*
-     * Render 결과
-     */
 
     const checkoutUnitId =
         renderRes
@@ -804,10 +781,6 @@ async function executeSinglePipelineAttempt(
             .exchange;
 
 
-    /*
-     * 필수값 확인
-     */
-
     if (!checkoutUnitId) {
 
         throw new Error(
@@ -817,17 +790,25 @@ async function executeSinglePipelineAttempt(
     }
 
 
+    if (!totalAmount || totalAmount <= 0) {
+
+        throw new Error(
+            `유효하지 않은 amount입니다: ${totalAmount}`
+        );
+    }
+
+
     if (!originalRenderExchange) {
 
         throw new Error(
-            'exchange 정보가 없습니다:\n' +
+            'Render Order 응답에 exchange 정보가 없습니다:\n' +
             JSON.stringify(renderRes.data)
         );
     }
 
 
     /*
-     * Render exchange 로그
+     * Render exchange 확인
      */
 
     log(
@@ -838,36 +819,68 @@ async function executeSinglePipelineAttempt(
 
     /*
      * ========================================================
-     * Render exchange 값 계산
+     * ⭐ 중요 수정 부분
      *
-     * 기존 정상 동작하던 Place Order 로직 유지
+     * 공식 Payment 샘플 기준:
+     *
+     * exchangeAmount = amount / exchangeRate
+     *
+     * 예:
+     *
+     * 15430 / 1368.20 = 11.28
+     *
+     * 따라서 기존의
+     *
+     * exchangeAmount + shippingFeeExchangeAmount
+     *
+     * 계산은 사용하지 않습니다.
      * ========================================================
      */
 
-    const rawExchangeAmount =
+    const exchangeRate =
         parseFloat(
-            originalRenderExchange.exchangeAmount || 0
+            originalRenderExchange.exchangeRate
         );
 
 
-    const rawShippingExchange =
-        parseFloat(
-            originalRenderExchange
-                .shippingFeeExchangeAmount || 0
-        );
+    if (
+        !exchangeRate ||
+        exchangeRate <= 0
+    ) {
 
+        throw new Error(
+            `유효한 exchangeRate가 없습니다: ` +
+            `${originalRenderExchange.exchangeRate}`
+        );
+    }
+
+
+    /*
+     * amount / exchangeRate
+     *
+     * 소수점 2자리
+     */
 
     const calculatedExchangeAmount =
         (
-            rawExchangeAmount +
-            rawShippingExchange
+            totalAmount / exchangeRate
         ).toFixed(2);
 
 
     const formattedExchangeRate =
-        parseFloat(
-            originalRenderExchange.exchangeRate || 0
-        ).toFixed(2);
+        exchangeRate.toFixed(2);
+
+
+    /*
+     * 계산 로그
+     */
+
+    log(
+        `💱 Exchange 계산:\n` +
+        `amount = ${totalAmount}\n` +
+        `exchangeRate = ${formattedExchangeRate}\n` +
+        `exchangeAmount = ${calculatedExchangeAmount}`
+    );
 
 
     /*
@@ -887,12 +900,8 @@ async function executeSinglePipelineAttempt(
 
 
     /*
-     * ⭐ 중요
-     *
-     * Place Order에서 사용하는 exchange를
-     * 하나의 객체로 만들어 둡니다.
-     *
-     * 이후 Payment에서도 이 객체를 그대로 사용합니다.
+     * Place Order와 Payment에서
+     * 동일한 exchange 객체 사용
      */
 
     const placeExchange = {
@@ -916,6 +925,7 @@ async function executeSinglePipelineAttempt(
             String(
                 formattedExchangeRate
             )
+
     };
 
 
@@ -950,6 +960,7 @@ async function executeSinglePipelineAttempt(
 
         exchange:
             placeExchange
+
     };
 
 
@@ -961,7 +972,7 @@ async function executeSinglePipelineAttempt(
 
 
     /*
-     * Place 응답 확인
+     * Place Order 응답 검증
      */
 
     if (
@@ -976,10 +987,6 @@ async function executeSinglePipelineAttempt(
     }
 
 
-    /*
-     * Place 결과
-     */
-
     const packNo =
         placeRes
             .data
@@ -991,10 +998,6 @@ async function executeSinglePipelineAttempt(
             .data
             .contrNo;
 
-
-    /*
-     * 필수값 확인
-     */
 
     if (
         !packNo ||
@@ -1008,14 +1011,11 @@ async function executeSinglePipelineAttempt(
     }
 
 
-    /*
-     * Place Order 성공 정보
-     */
-
     log(
         `📦 Place Order 성공\n` +
         `packNo: ${packNo}\n` +
-        `contrNo: ${contrNo}`
+        `contrNo: ${contrNo}`,
+        'success'
     );
 
 
@@ -1032,11 +1032,7 @@ async function executeSinglePipelineAttempt(
 
 
     /*
-     * ⭐ 중요
-     *
-     * Payment에 별도로 exchange를 재계산하지 않습니다.
-     *
-     * Place Order에 전달했던 객체를 그대로 복사합니다.
+     * Place Order와 동일한 exchange 사용
      */
 
     const paymentExchangeBody = {
@@ -1045,7 +1041,7 @@ async function executeSinglePipelineAttempt(
 
 
     /*
-     * 디버깅 로그
+     * Exchange 비교 로그
      */
 
     log(
@@ -1060,27 +1056,30 @@ async function executeSinglePipelineAttempt(
     );
 
 
-    /*
-     * 두 값이 동일한지 확인
-     */
-
-    const exchangeCompare =
+    const exchangeSame =
         JSON.stringify(placeExchange) ===
         JSON.stringify(paymentExchangeBody);
 
 
-    log(
-        exchangeCompare
-            ? '✅ Place Order / Payment exchange 동일'
-            : '❌ Place Order / Payment exchange 불일치',
-        exchangeCompare
-            ? 'success'
-            : 'error'
-    );
+    if (exchangeSame) {
+
+        log(
+            '✅ Place Order / Payment exchange 동일',
+            'success'
+        );
+
+    } else {
+
+        log(
+            '❌ Place Order / Payment exchange 불일치',
+            'error'
+        );
+
+    }
 
 
     /*
-     * Payment Body
+     * Payment 요청
      */
 
     const paymentBody = {
@@ -1102,12 +1101,9 @@ async function executeSinglePipelineAttempt(
 
         exchange:
             paymentExchangeBody
+
     };
 
-
-    /*
-     * Payment 요청
-     */
 
     const paymentRes =
         await callApi(
@@ -1126,12 +1122,14 @@ async function executeSinglePipelineAttempt(
         'success'
     );
 
+
+    return paymentRes;
 }
 
 
 /*
  * ============================================================
- * 12. 전체 실행
+ * 12. 전체 파이프라인 실행
  * ============================================================
  */
 
@@ -1155,7 +1153,7 @@ async function runOrderPipeline() {
     try {
 
         /*
-         * 주문 파이프라인 1회 실행
+         * 주문 파이프라인 실행
          */
 
         await executeSinglePipelineAttempt(1);
