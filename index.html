@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GMarket GSP Sandbox 주문 테스트 자동화</title>
+
+    <title>GMarket GSP Sandbox 주문 파이프라인 테스트</title>
 
     <style>
         body {
@@ -27,7 +28,7 @@
             background: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .form-group {
@@ -96,7 +97,7 @@
 
         .notice {
             background-color: #e8f4fd;
-            border-left: 6px #3498db solid;
+            border-left: 6px solid #3498db;
             padding: 10px;
             margin-bottom: 15px;
             font-size: 14px;
@@ -106,7 +107,7 @@
 
         .warning {
             background-color: #fff3cd;
-            border-left: 6px #ffc107 solid;
+            border-left: 6px solid #ffc107;
             padding: 10px;
             margin-top: 15px;
             font-size: 14px;
@@ -124,953 +125,1102 @@
 
 <body>
 
-    <h1>🛒 GMarket GSP Sandbox 주문 파이프라인 테스트</h1>
+<h1>🛒 GMarket GSP Sandbox 주문 파이프라인 테스트</h1>
 
-    <div class="notice">
-        <strong>🌐 Proxy 통신 모드:</strong>
-        브라우저에서 ESMPlus API를 직접 호출하지 않고
-        Cloudflare Worker를 통해 호출합니다.
-        <br>
-        따라서 Chrome의
-        <code>--disable-web-security</code>
-        옵션이 필요하지 않습니다.
-    </div>
+<div class="notice">
+    <strong>🌐 Proxy 통신 모드:</strong>
+    브라우저에서 ESMPlus API를 직접 호출하지 않고
+    Cloudflare Worker를 통해 호출합니다.
+    <br>
+    따라서 Chrome의 <code>--disable-web-security</code> 옵션이 필요하지 않습니다.
+</div>
 
-    <hr>
+<hr>
 
-    <div class="container">
+<div class="container">
 
-        <!-- 입력 폼 -->
-        <div class="panel">
+    <!-- ============================= -->
+    <!-- 입력 영역 -->
+    <!-- ============================= -->
 
-            <h3>1. Render Order 기본 정보 입력</h3>
+    <div class="panel">
 
-            <div class="form-group">
-                <label>
-                    siteCode / subSiteCode
-                    (배송 국가 자동 지정)
-                </label>
+        <h3>1. Render Order 기본 정보 입력</h3>
 
-                <div style="display: flex; gap: 10px;">
+        <div class="form-group">
 
-                    <input
-                        type="text"
-                        id="siteCode"
-                        value="LAZADA"
-                    >
+            <label>
+                siteCode / subSiteCode
+                (배송 국가 자동 지정)
+            </label>
 
-                    <input
-                        type="text"
-                        id="subSiteCode"
-                        value="SG"
-                    >
-
-                </div>
-            </div>
-
-
-            <div class="form-group">
-
-                <label>itemNo</label>
+            <div style="display:flex; gap:10px;">
 
                 <input
                     type="text"
-                    id="itemNo"
-                    value="8003559881"
+                    id="siteCode"
+                    value="LAZADA"
                 >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>skuCode</label>
 
                 <input
                     type="text"
-                    id="skuCode"
-                    value="10801753148"
+                    id="subSiteCode"
+                    value="SG"
                 >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>quantity</label>
-
-                <input
-                    type="number"
-                    id="quantity"
-                    value="1"
-                    min="1"
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>
-                    requestKey
-                    (Render용 기본값)
-                </label>
-
-                <input
-                    type="text"
-                    id="requestKey"
-                    value="4534543543545"
-                >
-
-            </div>
-
-
-            <button
-                id="runBtn"
-                onclick="runOrderPipeline()"
-            >
-                주문 파이프라인 일괄 실행
-            </button>
-
-
-            <div
-                id="statusMessage"
-                class="status"
-            ></div>
-
-
-            <div class="warning">
-
-                <strong>⚠️ 보안:</strong>
-
-                API Bearer Token은
-                이 HTML에 넣지 않습니다.
-
-                <br>
-
-                Token은 Cloudflare Worker의
-                <code>ESMPLUS_BEARER_TOKEN</code>
-                Secret에 저장됩니다.
 
             </div>
 
         </div>
 
 
-        <!-- 로그 -->
-        <div class="panel">
+        <div class="form-group">
 
-            <h3>🖥️ 실행 로그 (Console)</h3>
+            <label>itemNo</label>
 
-            <div
-                id="logBox"
-                class="log-box"
+            <input
+                type="text"
+                id="itemNo"
+                value="8003559881"
             >
-                대기 중...
-            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>skuCode</label>
+
+            <input
+                type="text"
+                id="skuCode"
+                value="10801753148"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>quantity</label>
+
+            <input
+                type="number"
+                id="quantity"
+                value="1"
+                min="1"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                requestKey (Render용 기본값)
+            </label>
+
+            <input
+                type="text"
+                id="requestKey"
+                value="244545454"
+            >
+
+        </div>
+
+
+        <button
+            id="runBtn"
+            onclick="runOrderPipeline()"
+        >
+            주문 파이프라인 일괄 실행
+        </button>
+
+
+        <div
+            id="statusMessage"
+            class="status"
+        ></div>
+
+
+        <div class="warning">
+
+            <strong>⚠️ 보안:</strong>
+
+            API Bearer Token은 이 HTML에 넣지 않습니다.
+
+            <br>
+
+            Token은 Cloudflare Worker의
+            <code>ESMPLUS_BEARER_TOKEN</code>
+            Secret에 저장됩니다.
 
         </div>
 
     </div>
 
 
-    <script>
+    <!-- ============================= -->
+    <!-- 로그 영역 -->
+    <!-- ============================= -->
 
-        /*
-         * =====================================================
-         * Cloudflare Worker 주소
-         * =====================================================
-         *
-         * 현재 생성한 Worker
-         *
-         * https://gsp-api-proxy.namsu-b.workers.dev
-         *
-         */
+    <div class="panel">
 
-        const API_PROXY_BASE =
-            'https://gsp-api-proxy.namsu-b.workers.dev';
+        <h3>🖥️ 실행 로그 (Console)</h3>
 
+        <div
+            id="logBox"
+            class="log-box"
+        >대기 중...</div>
 
-        /*
-         * =====================================================
-         * Worker API 경로
-         * =====================================================
-         */
+    </div>
 
-        const API_PATHS = {
+</div>
 
-            render:
-                '/lazada/checkout/v1/render-order',
 
-            place:
-                '/lazada/order/v1/place-order',
+<script>
 
-            payment:
-                '/lazada/payment/v1/payments'
+/*
+ * ============================================================
+ * 1. Cloudflare Worker 설정
+ * ============================================================
+ */
 
-        };
+const API_PROXY_BASE =
+    'https://gsp-api-proxy.namsu-b.workers.dev';
 
 
-        /*
-         * =====================================================
-         * 고정값
-         * =====================================================
-         */
+/*
+ * ============================================================
+ * 2. API 경로
+ * ============================================================
+ */
 
-        const FIXED_BUYER_NO =
-            "160886898";
+const API_PATHS = {
 
-        const FIXED_EXCHANGE =
-            "USD";
+    render:
+        '/lazada/checkout/v1/render-order',
 
+    place:
+        '/lazada/order/v1/place-order',
 
-        /*
-         * =====================================================
-         * DOM
-         * =====================================================
-         */
+    payment:
+        '/lazada/payment/v1/payments'
 
-        const logBox =
-            document.getElementById('logBox');
+};
 
-        const statusMessage =
-            document.getElementById('statusMessage');
 
-        const runBtn =
-            document.getElementById('runBtn');
+/*
+ * ============================================================
+ * 3. 고정값
+ * ============================================================
+ */
 
+const FIXED_BUYER_NO =
+    '160886898';
 
-        /*
-         * =====================================================
-         * 로그 출력
-         * =====================================================
-         */
+const FIXED_EXCHANGE =
+    'USD';
 
-        function log(message, type = 'info') {
 
-            const timestamp =
-                new Date().toLocaleTimeString();
+/*
+ * ============================================================
+ * 4. DOM
+ * ============================================================
+ */
 
-            let color =
-                '#ecf0f1';
+const logBox =
+    document.getElementById('logBox');
 
-            if (type === 'success') {
-                color = '#2ecc71';
-            }
+const statusMessage =
+    document.getElementById('statusMessage');
 
-            if (type === 'error') {
-                color = '#e74c3c';
-            }
+const runBtn =
+    document.getElementById('runBtn');
 
-            if (type === 'req') {
-                color = '#f1c40f';
-            }
 
-            logBox.innerHTML +=
-                `<span style="color:${color}">
-                    [${timestamp}] ${escapeHtml(String(message))}
-                </span>\n\n`;
+/*
+ * ============================================================
+ * 5. 로그
+ * ============================================================
+ */
 
-            logBox.scrollTop =
-                logBox.scrollHeight;
-        }
+function log(message, type = 'info') {
 
+    const timestamp =
+        new Date().toLocaleTimeString();
 
-        /*
-         * =====================================================
-         * HTML Escape
-         * =====================================================
-         */
+    let color =
+        '#ecf0f1';
 
-        function escapeHtml(value) {
+    if (type === 'success') {
+        color = '#2ecc71';
+    }
 
-            return value
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+    if (type === 'error') {
+        color = '#e74c3c';
+    }
 
-        }
+    if (type === 'req') {
+        color = '#f1c40f';
+    }
 
+    logBox.innerHTML +=
+        `<span style="color:${color}">
+[${timestamp}] ${escapeHtml(String(message))}
+</span>\n\n`;
 
-        /*
-         * =====================================================
-         * 로그 초기화
-         * =====================================================
-         */
+    logBox.scrollTop =
+        logBox.scrollHeight;
+}
 
-        function clearLog() {
 
-            logBox.innerHTML = '';
+/*
+ * ============================================================
+ * 6. HTML Escape
+ * ============================================================
+ */
 
-        }
+function escapeHtml(value) {
 
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 
-        /*
-         * =====================================================
-         * 고유 Request Key 생성
-         * =====================================================
-         */
+}
 
-        function generateUniqueKey() {
 
-            const now =
-                new Date();
+/*
+ * ============================================================
+ * 7. 로그 초기화
+ * ============================================================
+ */
 
-            const year =
-                now.getFullYear();
+function clearLog() {
 
-            const month =
-                String(now.getMonth() + 1)
-                    .padStart(2, '0');
+    logBox.innerHTML = '';
 
-            const day =
-                String(now.getDate())
-                    .padStart(2, '0');
+}
 
-            const hours =
-                String(now.getHours())
-                    .padStart(2, '0');
 
-            const minutes =
-                String(now.getMinutes())
-                    .padStart(2, '0');
+/*
+ * ============================================================
+ * 8. 고유 Request Key
+ * ============================================================
+ */
 
-            const seconds =
-                String(now.getSeconds())
-                    .padStart(2, '0');
+function generateUniqueKey() {
 
-            return `${year}${month}${day}-${hours}${minutes}${seconds}`;
+    const now =
+        new Date();
 
-        }
+    const year =
+        now.getFullYear();
 
+    const month =
+        String(now.getMonth() + 1)
+            .padStart(2, '0');
 
-        /*
-         * =====================================================
-         * Worker URL 생성
-         * =====================================================
-         */
+    const day =
+        String(now.getDate())
+            .padStart(2, '0');
 
-        function getProxyUrl(path) {
+    const hours =
+        String(now.getHours())
+            .padStart(2, '0');
 
-            if (
-                !API_PROXY_BASE ||
-                API_PROXY_BASE.includes('YOUR-WORKER')
-            ) {
+    const minutes =
+        String(now.getMinutes())
+            .padStart(2, '0');
 
-                throw new Error(
-                    'Cloudflare Worker URL이 설정되지 않았습니다.'
-                );
+    const seconds =
+        String(now.getSeconds())
+            .padStart(2, '0');
 
-            }
+    return (
+        `${year}${month}${day}-` +
+        `${hours}${minutes}${seconds}`
+    );
+}
 
-            return (
-                API_PROXY_BASE.replace(/\/+$/, '') +
-                path
-            );
 
-        }
+/*
+ * ============================================================
+ * 9. Worker URL 생성
+ * ============================================================
+ */
 
+function getProxyUrl(path) {
 
-        /*
-         * =====================================================
-         * API 호출
-         *
-         * 브라우저
-         *   ↓
-         * Cloudflare Worker
-         *   ↓
-         * ESMPlus API
-         *
-         * Authorization은 브라우저에서 보내지 않습니다.
-         * Worker가 Secret에서 가져갑니다.
-         * =====================================================
-         */
+    if (
+        !API_PROXY_BASE ||
+        API_PROXY_BASE.includes('YOUR-WORKER')
+    ) {
 
-        async function callApi(path, body) {
+        throw new Error(
+            'Cloudflare Worker URL이 설정되지 않았습니다.'
+        );
+    }
 
-            const url =
-                getProxyUrl(path);
+    return (
+        API_PROXY_BASE.replace(/\/+$/, '') +
+        path
+    );
+}
 
 
-            log(
-                `🚀 Proxy POST 요청 -> ${url}`,
-                'req'
-            );
+/*
+ * ============================================================
+ * 10. API 호출
+ *
+ * Browser
+ *    ↓
+ * Cloudflare Worker
+ *    ↓
+ * ESMPlus API
+ *
+ * Bearer Token은 Worker에서 처리합니다.
+ * ============================================================
+ */
 
+async function callApi(path, body) {
 
-            log(
-                `📦 요청 바디:\n${JSON.stringify(body, null, 2)}`
-            );
+    const url =
+        getProxyUrl(path);
 
 
-            let response;
+    log(
+        `🚀 Proxy POST 요청 -> ${url}`,
+        'req'
+    );
 
 
-            try {
+    log(
+        `📦 요청 바디:\n${JSON.stringify(body, null, 2)}`
+    );
 
-                response =
-                    await fetch(
-                        url,
-                        {
-                            method: 'POST',
 
-                            headers: {
-                                'Content-Type':
-                                    'application/json',
+    let response;
 
-                                'Accept':
-                                    'application/json'
-                            },
 
-                            body:
-                                JSON.stringify(body)
-                        }
-                    );
+    try {
 
-            } catch (error) {
+        response =
+            await fetch(
+                url,
+                {
+                    method: 'POST',
 
-                throw new Error(
-                    `Proxy 연결 실패: ${error.message}`
-                );
+                    headers: {
+                        'Content-Type':
+                            'application/json',
 
-            }
+                        'Accept':
+                            'application/json'
+                    },
 
-
-            /*
-             * 응답을 Text로 먼저 받음
-             */
-
-            const responseText =
-                await response.text();
-
-
-            /*
-             * JSON 변환
-             */
-
-            let json = null;
-
-
-            try {
-
-                json =
-                    responseText
-                        ? JSON.parse(responseText)
-                        : null;
-
-            } catch (e) {
-
-                json = null;
-
-            }
-
-
-            /*
-             * HTTP 오류
-             */
-
-            if (!response.ok) {
-
-                const detail =
-                    json
-                        ? JSON.stringify(json)
-                        : (
-                            responseText ||
-                            response.statusText ||
-                            '응답 내용 없음'
-                        );
-
-                throw new Error(
-                    `[HTTP ${response.status}] ${detail}`
-                );
-
-            }
-
-
-            /*
-             * ESMPlus API 오류
-             */
-
-            if (
-                json &&
-                json.resultCode !== undefined
-            ) {
-
-                const success =
-                    String(json.resultCode) === '0' ||
-                    String(json.resultMsg || '')
-                        .toLowerCase() === 'succeed';
-
-
-                if (!success) {
-
-                    throw new Error(
-                        `[API 오류] ${JSON.stringify(json)}`
-                    );
-
+                    body:
+                        JSON.stringify(body)
                 }
-
-            }
-
-
-            /*
-             * 성공 응답 로그
-             */
-
-            log(
-                `📥 응답 수신:\n${JSON.stringify(json, null, 2)}`,
-                'success'
             );
 
+    } catch (error) {
 
-            return json;
+        throw new Error(
+            `Proxy 연결 실패: ${error.message}`
+        );
+    }
 
-        }
+
+    /*
+     * 응답 Text
+     */
+
+    const responseText =
+        await response.text();
 
 
-        /*
-         * =====================================================
-         * 주문 1회 실행
-         * =====================================================
-         */
+    /*
+     * JSON 변환
+     */
 
-        async function executeSinglePipelineAttempt(
-            attemptIndex
+    let json = null;
+
+
+    try {
+
+        json =
+            responseText
+                ? JSON.parse(responseText)
+                : null;
+
+    } catch (e) {
+
+        json = null;
+
+    }
+
+
+    /*
+     * HTTP 오류
+     */
+
+    if (!response.ok) {
+
+        const detail =
+            json
+                ? JSON.stringify(json)
+                : (
+                    responseText ||
+                    response.statusText ||
+                    '응답 내용 없음'
+                );
+
+        throw new Error(
+            `[HTTP ${response.status}] ${detail}`
+        );
+    }
+
+
+    /*
+     * API 응답 로그
+     */
+
+    log(
+        `📥 응답 수신:\n${JSON.stringify(json, null, 2)}`,
+        'success'
+    );
+
+
+    /*
+     * ESMPlus resultCode 검사
+     *
+     * 기존 정상 동작하던 Render / Place 흐름을
+     * 그대로 유지합니다.
+     */
+
+    if (
+        json &&
+        json.resultCode !== undefined
+    ) {
+
+        const resultCode =
+            String(json.resultCode);
+
+        if (
+            resultCode !== '0' &&
+            resultCode.toLowerCase() !== 'success'
         ) {
 
-            log(
-                `========================================`
+            throw new Error(
+                `[API 오류] ${JSON.stringify(json)}`
             );
+        }
+    }
 
-            log(
-                `🔄 주문 시도 #${attemptIndex} 시작`
-            );
 
-            log(
-                `========================================`
-            );
-
-
-            /*
-             * 입력값
-             */
-
-            const selectedSubSiteCode =
-                document
-                    .getElementById('subSiteCode')
-                    .value
-                    .trim();
-
-
-            /*
-             * Render Request Key
-             */
-
-            const currentRenderKey =
-                attemptIndex === 1
-                    ? document
-                        .getElementById('requestKey')
-                        .value
-                        .trim()
-                    : generateUniqueKey();
-
-
-            /*
-             * =================================================
-             * STEP 1
-             * Render Order
-             * =================================================
-             */
-
-            log(
-                '=== STEP 1: Render Order 시작 ==='
-            );
-
-
-            const renderBody = {
-
-                exchange:
-                    FIXED_EXCHANGE,
-
-                itemNo:
-                    document
-                        .getElementById('itemNo')
-                        .value
-                        .trim(),
-
-                quantity:
-                    parseInt(
-                        document
-                            .getElementById('quantity')
-                            .value,
-                        10
-                    ),
-
-                requestKey:
-                    currentRenderKey,
-
-                siteCode:
-                    document
-                        .getElementById('siteCode')
-                        .value
-                        .trim(),
-
-                skuCode:
-                    document
-                        .getElementById('skuCode')
-                        .value
-                        .trim(),
-
-                subSiteCode:
-                    selectedSubSiteCode
-
-            };
-
-
-            const renderRes =
-                await callApi(
-                    API_PATHS.render,
-                    renderBody
-                );
-
-
-            /*
-             * Render 응답 확인
-             */
-
-            if (
-                !renderRes ||
-                !renderRes.data
-            ) {
-
-                throw new Error(
-                    `Render Order 응답에 data가 없습니다:\n` +
-                    JSON.stringify(renderRes)
-                );
-
-            }
-
-
-            /*
-             * Render 결과
-             */
-
-            const checkoutUnitId =
-                renderRes
-                    .data
-                    .checkoutUnitId;
-
-
-            const totalAmount =
-                Number(
-                    renderRes
-                        .data
-                        .amount
-                );
-
-
-            const originalRenderExchange =
-                renderRes
-                    .data
-                    .exchange;
-
-
-            /*
-             * 필수 데이터 검증
-             */
-
-            if (!checkoutUnitId) {
-
-                throw new Error(
-                    `checkoutUnitId가 없습니다:\n` +
-                    JSON.stringify(renderRes.data)
-                );
-
-            }
-
-
-            if (!originalRenderExchange) {
-
-                throw new Error(
-                    `exchange 정보가 없습니다:\n` +
-                    JSON.stringify(renderRes.data)
-                );
-
-            }
-
-
-            /*
-             * 환율 계산
-             */
-
-            const rawExchangeAmount =
-                parseFloat(
-                    originalRenderExchange.exchangeAmount || 0
-                );
-
-
-            const rawShippingExchange =
-                parseFloat(
-                    originalRenderExchange
-                        .shippingFeeExchangeAmount || 0
-                );
-
-
-            const calculatedExchangeAmount =
-                (
-                    rawExchangeAmount +
-                    rawShippingExchange
-                ).toFixed(2);
-
-
-            const formattedExchangeRate =
-                parseFloat(
-                    originalRenderExchange.exchangeRate || 0
-                ).toFixed(2);
-
-
-            /*
-             * =================================================
-             * STEP 2
-             * Place Order
-             * =================================================
-             */
-
-            log(
-                '=== STEP 2: Place Order 시작 ==='
-            );
-
-
-            const currentPlaceRequestKey =
-                generateUniqueKey();
-
-
-const placeExchange = {
-    exchangeNo: String(originalRenderExchange.exchangeNo),
-    exchange: String(originalRenderExchange.exchange),
-    exchangeAmount: String(calculatedExchangeAmount),
-    exchangeRate: String(formattedExchangeRate)
-};
-
-const placeBody = {
-    buyerNo: Number(FIXED_BUYER_NO),
-    checkoutUnitId: Number(checkoutUnitId),
-    requestKey: currentPlaceRequestKey,
-    siteCode: document.getElementById('siteCode').value.trim(),
-    subSiteCode: selectedSubSiteCode,
-    shippingCountryCode: selectedSubSiteCode,
-    amount: totalAmount,
-    exchange: placeExchange
-};
-
-
-            const placeRes =
-                await callApi(
-                    API_PATHS.place,
-                    placeBody
-                );
-
-
-            /*
-             * Place 응답 확인
-             */
-
-            if (
-                !placeRes ||
-                !placeRes.data
-            ) {
-
-                throw new Error(
-                    `Place Order 응답에 data가 없습니다:\n` +
-                    JSON.stringify(placeRes)
-                );
-
-            }
-
-
-            /*
-             * Place 결과
-             */
-
-            const packNo =
-                placeRes
-                    .data
-                    .packNo;
-
-
-            const contrNo =
-                placeRes
-                    .data
-                    .contrNo;
-
-
-            /*
-             * 필수 데이터 검증
-             */
-
-            if (
-                !packNo ||
-                !contrNo
-            ) {
-
-                throw new Error(
-                    `Place Order 응답에 packNo 또는 contrNo가 없습니다:\n` +
-                    JSON.stringify(placeRes.data)
-                );
-
-            }
+    return json;
+}
 
 
 /*
- * =================================================
- * STEP 3
- * Payments
- * =================================================
+ * ============================================================
+ * 11. 주문 파이프라인
+ * ============================================================
  */
 
-log(
-    '=== STEP 3: Payments 시작 ==='
-);
+async function executeSinglePipelineAttempt(
+    attemptIndex
+) {
+
+    log(
+        '========================================'
+    );
+
+    log(
+        `🔄 주문 시도 #${attemptIndex} 시작`
+    );
+
+    log(
+        '========================================'
+    );
+
+
+    /*
+     * 입력값
+     */
+
+    const siteCode =
+        document
+            .getElementById('siteCode')
+            .value
+            .trim();
+
+    const subSiteCode =
+        document
+            .getElementById('subSiteCode')
+            .value
+            .trim();
+
+    const itemNo =
+        document
+            .getElementById('itemNo')
+            .value
+            .trim();
+
+    const skuCode =
+        document
+            .getElementById('skuCode')
+            .value
+            .trim();
+
+    const quantity =
+        parseInt(
+            document
+                .getElementById('quantity')
+                .value,
+            10
+        );
+
+    const requestKey =
+        document
+            .getElementById('requestKey')
+            .value
+            .trim();
+
+
+    /*
+     * 기본 검증
+     */
+
+    if (!siteCode) {
+        throw new Error('siteCode를 입력해주세요.');
+    }
+
+    if (!subSiteCode) {
+        throw new Error('subSiteCode를 입력해주세요.');
+    }
+
+    if (!itemNo) {
+        throw new Error('itemNo를 입력해주세요.');
+    }
+
+    if (!skuCode) {
+        throw new Error('skuCode를 입력해주세요.');
+    }
+
+    if (!quantity || quantity < 1) {
+        throw new Error('quantity는 1 이상이어야 합니다.');
+    }
+
+    if (!requestKey) {
+        throw new Error('requestKey를 입력해주세요.');
+    }
+
+
+    /*
+     * ========================================================
+     * STEP 1
+     * Render Order
+     * ========================================================
+     */
+
+    log(
+        '=== STEP 1: Render Order 시작 ==='
+    );
+
+
+    const renderBody = {
+
+        exchange:
+            FIXED_EXCHANGE,
+
+        itemNo:
+            itemNo,
+
+        quantity:
+            quantity,
+
+        requestKey:
+            requestKey,
+
+        siteCode:
+            siteCode,
+
+        skuCode:
+            skuCode,
+
+        subSiteCode:
+            subSiteCode
+    };
+
+
+    const renderRes =
+        await callApi(
+            API_PATHS.render,
+            renderBody
+        );
+
+
+    /*
+     * Render 응답 확인
+     */
+
+    if (
+        !renderRes ||
+        !renderRes.data
+    ) {
+
+        throw new Error(
+            'Render Order 응답에 data가 없습니다:\n' +
+            JSON.stringify(renderRes)
+        );
+    }
+
+
+    /*
+     * Render 결과
+     */
+
+    const checkoutUnitId =
+        renderRes
+            .data
+            .checkoutUnitId;
+
+
+    const totalAmount =
+        Number(
+            renderRes
+                .data
+                .amount
+        );
+
+
+    const originalRenderExchange =
+        renderRes
+            .data
+            .exchange;
+
+
+    /*
+     * 필수값 확인
+     */
+
+    if (!checkoutUnitId) {
+
+        throw new Error(
+            'checkoutUnitId가 없습니다:\n' +
+            JSON.stringify(renderRes.data)
+        );
+    }
+
+
+    if (!originalRenderExchange) {
+
+        throw new Error(
+            'exchange 정보가 없습니다:\n' +
+            JSON.stringify(renderRes.data)
+        );
+    }
+
+
+    /*
+     * Render exchange 로그
+     */
+
+    log(
+        `💱 Render Order exchange:\n` +
+        `${JSON.stringify(originalRenderExchange, null, 2)}`
+    );
+
+
+    /*
+     * ========================================================
+     * Render exchange 값 계산
+     *
+     * 기존 정상 동작하던 Place Order 로직 유지
+     * ========================================================
+     */
+
+    const rawExchangeAmount =
+        parseFloat(
+            originalRenderExchange.exchangeAmount || 0
+        );
+
+
+    const rawShippingExchange =
+        parseFloat(
+            originalRenderExchange
+                .shippingFeeExchangeAmount || 0
+        );
+
+
+    const calculatedExchangeAmount =
+        (
+            rawExchangeAmount +
+            rawShippingExchange
+        ).toFixed(2);
+
+
+    const formattedExchangeRate =
+        parseFloat(
+            originalRenderExchange.exchangeRate || 0
+        ).toFixed(2);
+
+
+    /*
+     * ========================================================
+     * STEP 2
+     * Place Order
+     * ========================================================
+     */
+
+    log(
+        '=== STEP 2: Place Order 시작 ==='
+    );
+
+
+    const currentPlaceRequestKey =
+        generateUniqueKey();
+
+
+    /*
+     * ⭐ 중요
+     *
+     * Place Order에서 사용하는 exchange를
+     * 하나의 객체로 만들어 둡니다.
+     *
+     * 이후 Payment에서도 이 객체를 그대로 사용합니다.
+     */
+
+    const placeExchange = {
+
+        exchangeNo:
+            String(
+                originalRenderExchange.exchangeNo
+            ),
+
+        exchange:
+            String(
+                originalRenderExchange.exchange
+            ),
+
+        exchangeAmount:
+            String(
+                calculatedExchangeAmount
+            ),
+
+        exchangeRate:
+            String(
+                formattedExchangeRate
+            )
+    };
+
+
+    log(
+        `💱 Place Order에 전달할 exchange:\n` +
+        `${JSON.stringify(placeExchange, null, 2)}`
+    );
+
+
+    const placeBody = {
+
+        buyerNo:
+            Number(FIXED_BUYER_NO),
+
+        checkoutUnitId:
+            Number(checkoutUnitId),
+
+        requestKey:
+            currentPlaceRequestKey,
+
+        siteCode:
+            siteCode,
+
+        subSiteCode:
+            subSiteCode,
+
+        shippingCountryCode:
+            subSiteCode,
+
+        amount:
+            totalAmount,
+
+        exchange:
+            placeExchange
+    };
+
+
+    const placeRes =
+        await callApi(
+            API_PATHS.place,
+            placeBody
+        );
+
+
+    /*
+     * Place 응답 확인
+     */
+
+    if (
+        !placeRes ||
+        !placeRes.data
+    ) {
+
+        throw new Error(
+            'Place Order 응답에 data가 없습니다:\n' +
+            JSON.stringify(placeRes)
+        );
+    }
+
+
+    /*
+     * Place 결과
+     */
+
+    const packNo =
+        placeRes
+            .data
+            .packNo;
+
+
+    const contrNo =
+        placeRes
+            .data
+            .contrNo;
+
+
+    /*
+     * 필수값 확인
+     */
+
+    if (
+        !packNo ||
+        !contrNo
+    ) {
+
+        throw new Error(
+            'Place Order 응답에 packNo 또는 contrNo가 없습니다:\n' +
+            JSON.stringify(placeRes.data)
+        );
+    }
+
+
+    /*
+     * Place Order 성공 정보
+     */
+
+    log(
+        `📦 Place Order 성공\n` +
+        `packNo: ${packNo}\n` +
+        `contrNo: ${contrNo}`
+    );
+
+
+    /*
+     * ========================================================
+     * STEP 3
+     * Payment
+     * ========================================================
+     */
+
+    log(
+        '=== STEP 3: Payments 시작 ==='
+    );
+
+
+    /*
+     * ⭐ 중요
+     *
+     * Payment에 별도로 exchange를 재계산하지 않습니다.
+     *
+     * Place Order에 전달했던 객체를 그대로 복사합니다.
+     */
+
+    const paymentExchangeBody = {
+        ...placeExchange
+    };
+
+
+    /*
+     * 디버깅 로그
+     */
+
+    log(
+        `💱 Place Order에 전달한 exchange:\n` +
+        `${JSON.stringify(placeExchange, null, 2)}`
+    );
+
+
+    log(
+        `💱 Payment에 전달할 exchange:\n` +
+        `${JSON.stringify(paymentExchangeBody, null, 2)}`
+    );
+
+
+    /*
+     * 두 값이 동일한지 확인
+     */
+
+    const exchangeCompare =
+        JSON.stringify(placeExchange) ===
+        JSON.stringify(paymentExchangeBody);
+
+
+    log(
+        exchangeCompare
+            ? '✅ Place Order / Payment exchange 동일'
+            : '❌ Place Order / Payment exchange 불일치',
+        exchangeCompare
+            ? 'success'
+            : 'error'
+    );
+
+
+    /*
+     * Payment Body
+     */
+
+    const paymentBody = {
+
+        buyerNo:
+            String(FIXED_BUYER_NO),
+
+        requestKey:
+            currentPlaceRequestKey,
+
+        packNo:
+            packNo,
+
+        contrNo:
+            contrNo,
+
+        amount:
+            String(totalAmount),
+
+        exchange:
+            paymentExchangeBody
+    };
+
+
+    /*
+     * Payment 요청
+     */
+
+    const paymentRes =
+        await callApi(
+            API_PATHS.payment,
+            paymentBody
+        );
+
+
+    /*
+     * Payment 성공
+     */
+
+    log(
+        `💳 Payment 성공:\n` +
+        `${JSON.stringify(paymentRes, null, 2)}`,
+        'success'
+    );
+
+}
 
 
 /*
- * Place Order에 실제 전달했던 exchange를
- * Payment에도 동일하게 사용
+ * ============================================================
+ * 12. 전체 실행
+ * ============================================================
  */
 
-const paymentExchangeBody = {
-    ...placeExchange
-};
+async function runOrderPipeline() {
+
+    clearLog();
 
 
-/*
- * 디버깅 로그
- */
-
-log(
-    `💱 Place Order에 전달한 exchange:\n` +
-    `${JSON.stringify(placeExchange, null, 2)}`
-);
-
-log(
-    `💱 Payment에 전달할 exchange:\n` +
-    `${JSON.stringify(paymentExchangeBody, null, 2)}`
-);
+    runBtn.disabled =
+        true;
 
 
-/*
- * Payment 요청
- */
-
-const paymentBody = {
-
-    buyerNo:
-        String(FIXED_BUYER_NO),
-
-    requestKey:
-        currentPlaceRequestKey,
-
-    packNo:
-        packNo,
-
-    contrNo:
-        contrNo,
-
-    amount:
-        String(totalAmount),
-
-    exchange:
-        paymentExchangeBody
-
-};
+    statusMessage.className =
+        'status';
 
 
-await callApi(
-    API_PATHS.payment,
-    paymentBody
-);
+    statusMessage.innerText =
+        '⏳ Sandbox 주문 생성 진행 중...';
+
+
+    try {
 
         /*
-         * =====================================================
-         * 전체 주문 파이프라인 실행
-         * =====================================================
+         * 주문 파이프라인 1회 실행
          */
 
-        async function runOrderPipeline() {
-
-            clearLog();
+        await executeSinglePipelineAttempt(1);
 
 
-            runBtn.disabled =
-                true;
+        /*
+         * 전체 성공
+         */
+
+        log(
+            '========================================',
+            'success'
+        );
+
+        log(
+            '🎉 Sandbox 모든 주문 프로세스가 정상 처리되었습니다!',
+            'success'
+        );
+
+        log(
+            '========================================',
+            'success'
+        );
 
 
-            statusMessage.className =
-                'status';
+        statusMessage.className =
+            'status success';
 
 
-            statusMessage.innerText =
-                '⏳ Sandbox 주문 생성 진행 중...';
+        statusMessage.innerText =
+            '✅ Sandbox 전 과정 성공 완료!';
 
 
-            try {
+    } catch (error) {
 
-                /*
-                 * 1회 실행
-                 */
-
-                await executeSinglePipelineAttempt(1);
-
-
-                /*
-                 * 성공
-                 */
-
-                log(
-                    '🎉 Sandbox 모든 주문 프로세스가 정상 처리되었습니다!',
-                    'success'
-                );
+        console.error(
+            'Order Pipeline Error:',
+            error
+        );
 
 
-                statusMessage.className =
-                    'status success';
+        log(
+            `❌ 프로세스 중단: ${error.message}`,
+            'error'
+        );
 
 
-                statusMessage.innerText =
-                    '✅ Sandbox 전 과정 성공 완료!';
+        statusMessage.className =
+            'status error';
 
 
-            } catch (error) {
-
-                console.error(error);
-
-
-                log(
-                    `❌ 에러 발생: ${error.message}`,
-                    'error'
-                );
+        statusMessage.innerText =
+            '❌ 에러 발생 (로그 확인 필요)';
 
 
-                statusMessage.className =
-                    'status error';
+    } finally {
 
+        runBtn.disabled =
+            false;
 
-                statusMessage.innerText =
-                    '❌ 에러 발생 (로그 확인 필요)';
+    }
 
+}
 
-            } finally {
-
-                runBtn.disabled =
-                    false;
-
-            }
-
-        }
-
-    </script>
+</script>
 
 </body>
 </html>
